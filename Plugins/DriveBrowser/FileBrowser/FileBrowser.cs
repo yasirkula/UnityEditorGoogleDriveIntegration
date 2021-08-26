@@ -116,7 +116,9 @@ namespace DriveBrowser
 					"- To refresh a folder's contents, right click the folder and select 'Refresh'\n" +
 					"- To switch Google accounts, click the 'Reauthenticate' button\n" +
 					"- Google documents aren't actual files and thus, their file sizes will be displayed as 0 bytes\n" +
-					"- In File Activity window, files highlighted in red color are permanently deleted and can't be downloaded", "Thanks!" );
+					"- In File Activity window, files highlighted in red color are permanently deleted and can't be downloaded\n" +
+					"- Asynchronous operations usually prevent code compilation until the operation is completed but if you feel like your code won't compile or " +
+					"Unity won't enter Play mode although all asynchronous operations are completed, click the 'Unstuck Compilation Pipeline' button", "OK" );
 			} );
 
 			menu.AddSeparator( "" );
@@ -134,6 +136,8 @@ namespace DriveBrowser
 			menu.AddSeparator( "" );
 
 			menu.AddItem( new GUIContent( "Clear Preview Cache" ), false, () => DriveAPI.ClearThumbnailCache() );
+
+			menu.AddItem( new GUIContent( "Unstuck Compilation Pipeline" ), false, () => HelperFunctions.UnlockAssemblyReload() );
 		}
 
 		// Serialize DriveAPI's Dictionaries in this EditorWindow's arrays
