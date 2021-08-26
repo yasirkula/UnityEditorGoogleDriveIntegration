@@ -8,6 +8,7 @@ using Google.Apis.PeopleService.v1;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -243,6 +244,57 @@ namespace DriveBrowser
 								onEntryReceived?.Invoke( activityEntry );
 								receivedEntryCount++;
 							}
+						}
+					}
+
+					pageToken = result.NextPageToken;
+				} while( pageToken != null && receivedEntryCount < minimumEntryCount );
+			}
+			catch( System.OperationCanceledException )
+			{
+				return null;
+			}
+			catch( System.Exception e )
+			{
+				Debug.LogException( e );
+			}
+
+			return pageToken;
+		}
+
+		// The built-in "name contains 'World'" query unfortunately fails for "HelloWorld.txt" (i.e. it doesn't perform substring search)
+		// Thus, to get the results that a human being would expect to see, we need to go through ALL files on Drive and search their names manually
+		public static async Task<string> PerformGlobalSearchAsync( string searchTerm, SearchResultEntryDelegate onEntryReceived, CancellationToken cancellationToken, int minimumEntryCount = 50, string pageToken = null )
+		{
+			try
+			{
+				CompareInfo textComparer = new CultureInfo( "en-US" ).CompareInfo;
+				CompareOptions textCompareOptions = CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace;
+
+				int receivedEntryCount = 0;
+				do
+				{
+					FilesResource.ListRequest request = ( await GetDriveAPIAsync() ).Files.List();
+					request.PageSize = 1000;
+					request.Fields = "nextPageToken, files(id, name)";
+					request.Q = "trashed = false and mimeType != 'application/vnd.google-apps.shortcut'";
+					request.PageToken = pageToken;
+
+					FileList result = await request.ExecuteAsync( cancellationToken );
+					if( result.Files != null )
+					{
+						foreach( DFile file in result.Files )
+						{
+							if( cancellationToken.IsCancellationRequested )
+								return null;
+
+							// Manually search the file's name
+							if( textComparer.IndexOf( file.Name, searchTerm, textCompareOptions ) < 0 )
+								continue;
+
+							// Calling GetFileByIDAsync to fetch all of the required fields of the file from the server and not just its name
+							onEntryReceived?.Invoke( await GetFileByIDAsync( file.Id ) );
+							receivedEntryCount++;
 						}
 					}
 

@@ -92,7 +92,7 @@ namespace DriveBrowser
 
 		private void OnDestroy()
 		{
-			// Close all ActivityViewer windows with this window since they are tied to this window
+			// Close all ActivityViewer and GlobalSearchWindow windows with this window since they are tied to this window
 			ActivityViewer[] activityViewerWindows = Resources.FindObjectsOfTypeAll<ActivityViewer>();
 			if( activityViewerWindows != null )
 			{
@@ -102,6 +102,18 @@ namespace DriveBrowser
 						activityViewerWindow.Close();
 				}
 			}
+
+			GlobalSearchWindow[] globalSearchWindows = Resources.FindObjectsOfTypeAll<GlobalSearchWindow>();
+			if( globalSearchWindows != null )
+			{
+				foreach( GlobalSearchWindow globalSearchWindow in globalSearchWindows )
+				{
+					if( globalSearchWindow != null && !globalSearchWindow.Equals( null ) )
+						globalSearchWindow.Close();
+				}
+			}
+
+			IsBusy = false;
 		}
 
 		void IHasCustomMenu.AddItemsToMenu( GenericMenu menu )
@@ -222,6 +234,18 @@ namespace DriveBrowser
 
 			filesTreeView.OnGUI( GUILayoutUtility.GetRect( 0, 100000, 0, 100000 ) );
 
+			EditorGUILayout.EndScrollView();
+
+			if( !string.IsNullOrWhiteSpace( filesTreeView.searchString ) )
+			{
+				EditorGUILayout.Space();
+
+				if( GUILayout.Button( $"Search '{filesTreeView.searchString}' In All Drive..." ) )
+					GlobalSearchWindow.Initialize( this, filesTreeView.searchString );
+
+				EditorGUILayout.Space();
+			}
+
 			// This happens only when the mouse click is not captured by the TreeView
 			// In this case, clear the TreeView's selection
 			if( Event.current.type == EventType.MouseDown && Event.current.button == 0 )
@@ -229,8 +253,6 @@ namespace DriveBrowser
 				filesTreeView.SetSelection( new int[0] );
 				EditorApplication.delayCall += Repaint;
 			}
-
-			EditorGUILayout.EndScrollView();
 
 			GUI.enabled = true;
 		}
