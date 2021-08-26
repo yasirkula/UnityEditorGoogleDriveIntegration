@@ -1,4 +1,5 @@
 ﻿using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Drive.v3;
 using Google.Apis.Drive.v3.Data;
 using Google.Apis.DriveActivity.v2;
@@ -812,6 +813,24 @@ namespace DriveBrowser
 			driveAPI = new DriveService( apiInitializer );
 			driveActivityAPI = new DriveActivityService( apiInitializer );
 			peopleAPI = new PeopleServiceService( apiInitializer );
+
+			// Perform a dummy request to verify that our cached access tokens are still valid
+			try
+			{
+				AboutResource.GetRequest request = driveAPI.About.Get();
+				request.Fields = "kind";
+				await request.ExecuteAsync();
+			}
+			catch( TokenResponseException e )
+			{
+				if( e.Error != null )
+					Debug.LogWarning( $"Drive access tokens were invalidated, reauthenticating. Reason:\"{e.Error.Error}\", Description:\"{e.Error.ErrorDescription}\", Uri:\"{e.Error.ErrorUri}\"" );
+				else
+					Debug.LogException( e );
+
+				RevokeAuthentication();
+				await InitializeAPIs();
+			}
 		}
 
 		public static void RevokeAuthentication()
