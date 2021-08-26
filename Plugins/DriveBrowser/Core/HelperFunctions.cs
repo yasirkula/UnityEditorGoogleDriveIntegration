@@ -68,6 +68,24 @@ namespace DriveBrowser
 			window.position = windowRect;
 		}
 
+		public static string[] GetFileIDs( this DriveFile[] files )
+		{
+			string[] fileIDs = new string[files.Length];
+			for( int i = 0; i < files.Length; i++ )
+				fileIDs[i] = files[i].id;
+
+			return fileIDs;
+		}
+
+		public static string[] GetFileIDs( this ActivityEntry[] entries )
+		{
+			string[] fileIDs = new string[entries.Length];
+			for( int i = 0; i < entries.Length; i++ )
+				fileIDs[i] = entries[i].fileID;
+
+			return fileIDs;
+		}
+
 		public static void SerializeToArray<T>( this Dictionary<T, T> dictionary, out T[] array )
 		{
 			array = new T[dictionary.Count * 2];
@@ -175,6 +193,7 @@ namespace DriveBrowser
 			assemblyLockedHintShown = false;
 
 			EditorApplication.LockReloadAssemblies();
+			EditorApplication.update -= EnforceAssemblyLock;
 			EditorApplication.update += EnforceAssemblyLock;
 		}
 

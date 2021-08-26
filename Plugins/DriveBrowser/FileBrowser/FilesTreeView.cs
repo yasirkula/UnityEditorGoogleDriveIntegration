@@ -117,7 +117,7 @@ namespace DriveBrowser
 				Rect previewSourceRect = args.rowRect;
 				previewSourceRect.width = EditorGUIUtility.currentViewWidth;
 
-				FilePreviewPopup.Show( previewSourceRect, fileIDToFile[args.item.id] );
+				FilePreviewPopup.Show( previewSourceRect, file );
 			}
 
 			for( int i = 0; i < args.GetNumVisibleColumns(); ++i )

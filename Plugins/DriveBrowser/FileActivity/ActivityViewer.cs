@@ -1,6 +1,4 @@
-﻿//#define BLOCK_INPUT_UNTIL_FETCH_COMPLETE
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -39,25 +37,9 @@ namespace DriveBrowser
 					m_isBusy = value;
 
 					if( m_isBusy )
-					{
-#if BLOCK_INPUT_UNTIL_FETCH_COMPLETE
-#if UNITY_2019_1_OR_NEWER
-						ShowNotification( new GUIContent( "Loading..." ), 10000.0 );
-#else
-						ShowNotification( new GUIContent( "Loading..." ) );
-#endif
-#endif
 						HelperFunctions.LockAssemblyReload();
-					}
 					else
-					{
-#if BLOCK_INPUT_UNTIL_FETCH_COMPLETE
-						RemoveNotification();
-#endif
 						HelperFunctions.UnlockAssemblyReload();
-					}
-
-					Repaint();
 				}
 			}
 		}
@@ -65,7 +47,11 @@ namespace DriveBrowser
 		public static ActivityViewer Initialize( FileBrowser fileBrowser, DriveFile inspectedFile )
 		{
 			ActivityViewer window = CreateInstance<ActivityViewer>();
+#if UNITY_2019_3_OR_NEWER
+			window.titleContent = new GUIContent( "File Activity", inspectedFile.isFolder ? AssetDatabase.GetCachedIcon( "Assets" ) as Texture2D : UnityEditorInternal.InternalEditorUtility.GetIconForFile( inspectedFile.name ) );
+#else
 			window.titleContent = new GUIContent( "File Activity" );
+#endif
 			window.minSize = new Vector2( 400f, 175f );
 
 			window.fileBrowser = fileBrowser;
@@ -108,35 +94,18 @@ namespace DriveBrowser
 
 		private void ToggleFilter( ref bool filter )
 		{
-#if BLOCK_INPUT_UNTIL_FETCH_COMPLETE
-			if( IsBusy )
-				return;
-#endif
-
 			filter = !filter;
 			activityTreeView.SetFilters( showCreateEntries, showDeleteEntries, showEditEntries, showMoveEntries, showRenameEntries, showRestoreEntries );
 		}
 
 		private void OnEntriesRightClicked( ActivityEntry[] entries )
 		{
-#if BLOCK_INPUT_UNTIL_FETCH_COMPLETE
-			if( IsBusy )
-				return;
-#endif
-
 			if( entries == null || entries.Length == 0 )
 				return;
 
 			GenericMenu contextMenu = new GenericMenu();
 
-			contextMenu.AddItem( new GUIContent( "Download" ), false, () =>
-			{
-				string[] fileIDs = new string[entries.Length];
-				for( int i = 0; i < entries.Length; i++ )
-					fileIDs[i] = entries[i].fileID;
-
-				new DownloadRequest() { fileIDs = fileIDs }.DownloadAsync();
-			} );
+			contextMenu.AddItem( new GUIContent( "Download" ), false, () => new DownloadRequest() { fileIDs = entries.GetFileIDs() }.DownloadAsync() );
 
 			contextMenu.AddSeparator( "" );
 
@@ -181,10 +150,6 @@ namespace DriveBrowser
 				HelperFunctions.MoveWindowOverCursor( this, position.height );
 			}
 
-#if BLOCK_INPUT_UNTIL_FETCH_COMPLETE
-			GUI.enabled = !IsBusy;
-#endif
-
 			Rect inspectedFileRect = EditorGUILayout.GetControlRect( true, EditorGUIUtility.singleLineHeight );
 			GUI.Label( new Rect( inspectedFileRect.position, new Vector2( 80f, inspectedFileRect.height ) ), "Activity of:", EditorStyles.boldLabel );
 			inspectedFileRect.xMin += 85f;
@@ -204,7 +169,6 @@ namespace DriveBrowser
 
 			EditorGUILayout.EndScrollView();
 
-#if !BLOCK_INPUT_UNTIL_FETCH_COMPLETE
 			if( IsBusy )
 			{
 				EditorGUILayout.Space();
@@ -215,9 +179,7 @@ namespace DriveBrowser
 
 				EditorGUILayout.Space();
 			}
-			else
-#endif
-			if( !string.IsNullOrEmpty( pageToken ) )
+			else if( !string.IsNullOrEmpty( pageToken ) )
 			{
 				EditorGUILayout.Space();
 

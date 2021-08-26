@@ -39,8 +39,8 @@ namespace DriveBrowser
 					}
 					else
 					{
-						RemoveNotification();
 						HelperFunctions.UnlockAssemblyReload();
+						RemoveNotification();
 					}
 
 					Repaint();
@@ -188,16 +188,7 @@ namespace DriveBrowser
 				contextMenu.AddItem( new GUIContent( "View Activity" ), false, () => ActivityViewer.Initialize( this, files[0] ) );
 			}
 			else
-			{
-				contextMenu.AddItem( new GUIContent( "Download" ), false, () =>
-				{
-					string[] fileIDs = new string[files.Length];
-					for( int i = 0; i < files.Length; i++ )
-						fileIDs[i] = files[i].id;
-
-					new DownloadRequest() { fileIDs = fileIDs }.DownloadAsync();
-				} );
-			}
+				contextMenu.AddItem( new GUIContent( "Download" ), false, () => new DownloadRequest() { fileIDs = files.GetFileIDs() }.DownloadAsync() );
 
 			contextMenu.ShowAsContext();
 			Repaint(); // Without this, context menu can appear seconds later which is annoying

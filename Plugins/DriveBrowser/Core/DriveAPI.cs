@@ -139,7 +139,6 @@ namespace DriveBrowser
 
 		public static async Task<string> GetActivityAsync( this DriveFile file, ActivityEntryDelegate onEntryReceived, int minimumEntryCount = 20, string pageToken = null )
 		{
-			List<string> fetchedActivity = new List<string>( minimumEntryCount * 2 );
 			try
 			{
 				int receivedEntryCount = 0;
@@ -285,7 +284,15 @@ namespace DriveBrowser
 
 		public static async void DownloadAsync( this DownloadRequest downloadRequest )
 		{
-			// First, filter the files so that there are no duplicates or no parent-child relationships (which would result in duplicate downloads)
+			// Pick the download folder if it isn't already determined
+			if( string.IsNullOrEmpty( downloadRequest.path ) )
+			{
+				downloadRequest.path = EditorUtility.OpenFolderPanel( "Download file(s) to", "Assets", "" );
+				if( string.IsNullOrEmpty( downloadRequest.path ) )
+					return;
+			}
+
+			// Filter the files so that there are no duplicates or no parent-child relationships (which would result in duplicate downloads)
 			List<DriveFile> filesToDownload = new List<DriveFile>();
 			for( int i = 0; i < downloadRequest.fileIDs.Length; i++ )
 			{
@@ -301,9 +308,9 @@ namespace DriveBrowser
 				bool shouldDownloadFile = true;
 				for( int j = filesToDownload.Count - 1; j >= 0; j-- )
 				{
-					if( file.IsAncestorOf( filesToDownload[j] ) )
+					if( await file.IsAncestorOfAsync( filesToDownload[j] ) )
 						filesToDownload.RemoveAt( j );
-					else if( filesToDownload[j].IsAncestorOf( file ) )
+					else if( await filesToDownload[j].IsAncestorOfAsync( file ) )
 					{
 						shouldDownloadFile = false;
 						break;
@@ -318,14 +325,6 @@ namespace DriveBrowser
 			{
 				Debug.LogWarning( "No files to download..." );
 				return;
-			}
-
-			// Pick the download folder if it isn't already determined
-			if( string.IsNullOrEmpty( downloadRequest.path ) )
-			{
-				downloadRequest.path = EditorUtility.OpenFolderPanel( "Download file(s) to", "Assets", "" );
-				if( string.IsNullOrEmpty( downloadRequest.path ) )
-					return;
 			}
 
 			await GetDriveAPIAsync();
@@ -718,7 +717,7 @@ namespace DriveBrowser
 			return result;
 		}
 
-		public static bool IsAncestorOf( this DriveFile ancestor, DriveFile child )
+		public static async Task<bool> IsAncestorOfAsync( this DriveFile ancestor, DriveFile child )
 		{
 			while( !string.IsNullOrEmpty( child.parentID ) )
 			{
@@ -726,7 +725,7 @@ namespace DriveBrowser
 				if( _parentID == ancestor.id )
 					return true;
 
-				child = fileIDToFile[_parentID];
+				child = await GetFileByIDAsync( _parentID );
 			}
 
 			return false;
