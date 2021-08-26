@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Security.Cryptography;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -154,6 +155,19 @@ namespace DriveBrowser
 			headerState = newHeaderState;
 
 			return multiColumnHeader;
+		}
+
+		// Credit: https://stackoverflow.com/a/10520086/2373034
+		public static string CalculateMD5Hash( string filePath )
+		{
+			using( MD5 md5 = MD5.Create() )
+			{
+				using( FileStream stream = File.OpenRead( filePath ) )
+				{
+					byte[] hash = md5.ComputeHash( stream );
+					return System.BitConverter.ToString( hash ).Replace( "-", "" ).ToLowerInvariant();
+				}
+			}
 		}
 
 		public static void LockAssemblyReload()

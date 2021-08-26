@@ -165,6 +165,25 @@ namespace DriveBrowser
 				contextMenu.AddItem( new GUIContent( "Download" ), false, () => new DownloadRequest() { fileIDs = new string[1] { files[0].id } }.DownloadAsync() );
 				contextMenu.AddSeparator( "" );
 				contextMenu.AddItem( new GUIContent( "Open in Browser" ), false, () => files[0].OpenInBrowserAsync() );
+
+				if( files[0].size > 0L )
+				{
+					contextMenu.AddSeparator( "" );
+					contextMenu.AddItem( new GUIContent( "MD5/Print" ), false, async () => Debug.Log( await files[0].GetMD5HashAsync() ) );
+					contextMenu.AddItem( new GUIContent( "MD5/Compare" ), false, async () =>
+					{
+						string comparedFilePath = EditorUtility.OpenFilePanel( "Compare MD5 hash with file", Application.dataPath, "" );
+						if( string.IsNullOrEmpty( comparedFilePath ) )
+							return;
+
+						string driveFileHash = await files[0].GetMD5HashAsync();
+						string localFileHash = HelperFunctions.CalculateMD5Hash( comparedFilePath );
+						Debug.Log( string.Concat( ( driveFileHash == localFileHash ) ? "<b>MD5 hashes match:</b>\n" : "<b>MD5 hashes don't match:</b>\n",
+							"(Drive) ", files[0].name, ": <b>", driveFileHash, "</b>\n",
+							"(Local) ", comparedFilePath, ": <b>", localFileHash, "</b>" ) );
+					} );
+				}
+
 				contextMenu.AddSeparator( "" );
 				contextMenu.AddItem( new GUIContent( "View Activity" ), false, () => ActivityViewer.Initialize( this, files[0] ) );
 			}

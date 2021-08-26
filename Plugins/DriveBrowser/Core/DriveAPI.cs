@@ -671,6 +671,14 @@ namespace DriveBrowser
 			}
 		}
 
+		public static async Task<string> GetMD5HashAsync( this DriveFile file )
+		{
+			FilesResource.GetRequest request = ( await GetDriveAPIAsync() ).Files.Get( file.id );
+			request.Fields = "md5Checksum";
+
+			return ( await request.ExecuteAsync() ).Md5Checksum;
+		}
+
 		public static async void OpenInBrowserAsync( this DriveFile file )
 		{
 			FilesResource.GetRequest request = ( await GetDriveAPIAsync() ).Files.Get( file.id );
