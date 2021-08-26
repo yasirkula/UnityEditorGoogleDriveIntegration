@@ -137,7 +137,7 @@ namespace DriveBrowser
 			}
 		}
 
-		public static async Task<string> GetActivityAsync( this DriveFile file, ActivityEntryDelegate onEntryReceived, int minimumEntryCount = 20, string pageToken = null )
+		public static async Task<string> GetActivityAsync( this DriveFile file, ActivityEntryDelegate onEntryReceived, CancellationToken cancellationToken, int minimumEntryCount = 20, string pageToken = null )
 		{
 			try
 			{
@@ -156,7 +156,7 @@ namespace DriveBrowser
 					else
 						request.ItemName = "items/" + file.id;
 
-					QueryDriveActivityResponse result = await ( await GetDriveActivityAPIAsync() ).Activity.Query( request ).ExecuteAsync();
+					QueryDriveActivityResponse result = await ( await GetDriveActivityAPIAsync() ).Activity.Query( request ).ExecuteAsync( cancellationToken );
 					if( result.Activities != null )
 					{
 						StringBuilder sb = new StringBuilder( 200 );
@@ -170,6 +170,9 @@ namespace DriveBrowser
 							{
 								if( targetFile.DriveItem == null )
 									continue;
+
+								if( cancellationToken.IsCancellationRequested )
+									return null;
 
 								ActivityEntry activityEntry = new ActivityEntry();
 
@@ -245,6 +248,10 @@ namespace DriveBrowser
 
 					pageToken = result.NextPageToken;
 				} while( pageToken != null && receivedEntryCount < minimumEntryCount );
+			}
+			catch( System.OperationCanceledException )
+			{
+				return null;
 			}
 			catch( System.Exception e )
 			{

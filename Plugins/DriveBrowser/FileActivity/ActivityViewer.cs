@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -21,6 +22,8 @@ namespace DriveBrowser
 		private TreeViewState activityTreeViewState;
 		private MultiColumnHeaderState activityTreeViewHeaderState;
 		private SearchField searchField;
+
+		private CancellationTokenSource cancellationTokenSource;
 
 		private bool shouldRepositionSelf = true;
 
@@ -80,6 +83,14 @@ namespace DriveBrowser
 
 			searchField = new SearchField();
 			searchField.downOrUpArrowKeyPressed += activityTreeView.SetFocusAndEnsureSelectedItem;
+		}
+
+		private void OnDisable()
+		{
+			if( cancellationTokenSource != null && !cancellationTokenSource.IsCancellationRequested )
+				cancellationTokenSource.Cancel();
+
+			IsBusy = false;
 		}
 
 		void IHasCustomMenu.AddItemsToMenu( GenericMenu menu )
@@ -173,8 +184,9 @@ namespace DriveBrowser
 			{
 				EditorGUILayout.Space();
 
-				GUI.enabled = false;
-				GUILayout.Button( "Fetching Activity..." );
+				GUI.enabled = cancellationTokenSource != null && !cancellationTokenSource.IsCancellationRequested;
+				if( GUILayout.Button( "Abort Operation..." ) )
+					cancellationTokenSource.Cancel();
 				GUI.enabled = true;
 
 				EditorGUILayout.Space();
@@ -206,17 +218,25 @@ namespace DriveBrowser
 			IsBusy = true;
 			try
 			{
+				cancellationTokenSource = new CancellationTokenSource();
+
 				pageToken = await inspectedFile.GetActivityAsync( ( activityEntry ) =>
 				{
 					activity.Add( activityEntry );
 					activityTreeView.Reload();
 
 					Repaint();
-				}, MINIMUM_ENTRY_COUNT_PER_FETCH, pageToken );
+				}, cancellationTokenSource.Token, MINIMUM_ENTRY_COUNT_PER_FETCH, pageToken );
 			}
 			finally
 			{
 				IsBusy = false;
+
+				if( cancellationTokenSource != null )
+				{
+					cancellationTokenSource.Dispose();
+					cancellationTokenSource = null;
+				}
 			}
 		}
 	}
