@@ -4,7 +4,7 @@ This plugin helps you access your Google Drive™ files from within Unity editor
 
 The plugin requires at least **.NET Standard 2.0** or **.NET 4.x** *Api Compatibility Level* in *Player Settings*. Tested on Unity 2018.4.34f1 and 2019.4.26f1.
 
-**[Support the Developer ☕](https://yasirkula.itch.io/unity3d)**
+**[GitHub Sponsors ☕](https://github.com/sponsors/yasirkula)**
 
 ## INSTALLATION
 
