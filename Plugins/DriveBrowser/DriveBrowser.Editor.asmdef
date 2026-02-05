@@ -1,15 +1,32 @@
 {
     "name": "DriveBrowser.Editor",
+    "rootNamespace": "DriveBrowser",
     "references": [],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Google.Apis.Auth.dll",
+        "Google.Apis.Auth.PlatformServices.dll",
+        "Google.Apis.Core.dll",
+        "Google.Apis.dll",
+        "Google.Apis.Drive.v3.dll",
+        "Google.Apis.DriveActivity.v2.dll",
+        "Google.Apis.PeopleService.v1.dll"
+    ],
     "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
+    "defineConstraints": [
+        "NEWTONSOFT_PACKAGE_EXISTS"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.nuget.newtonsoft-json",
+            "expression": "0",
+            "define": "NEWTONSOFT_PACKAGE_EXISTS"
+        }
+    ],
     "noEngineReferences": false
 }

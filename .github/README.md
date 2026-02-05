@@ -17,6 +17,8 @@ There are 4 ways to install this plugin:
 - *(via [OpenUPM](https://openupm.com))* after installing [openupm-cli](https://github.com/openupm/openupm-cli), run the following command:
   - `openupm add com.yasirkula.driveintegration`
 
+**NOTE:** This plugin has a dependency to [Newtonsoft.Json](https://docs.unity3d.com/Packages/com.unity.nuget.newtonsoft-json@3.2/manual/index.html). If the plugin is installed via Package Manager, Newtonsoft.Json will come with it. Otherwise, you need to install it manually (in Package Manager, add package by name: `com.unity.nuget.newtonsoft-json`).
+
 ## HOW TO
 
 - Create a *Google Cloud project*: https://github.com/yasirkula/UnityEditorGoogleDriveIntegration/wiki/Creating-Google-Cloud-Project
