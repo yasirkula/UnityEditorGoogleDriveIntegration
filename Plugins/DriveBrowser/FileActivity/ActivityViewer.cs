@@ -50,17 +50,12 @@ namespace DriveBrowser
 		public static ActivityViewer Initialize( FileBrowser fileBrowser, DriveFile inspectedFile )
 		{
 			ActivityViewer window = CreateInstance<ActivityViewer>();
-#if UNITY_2019_3_OR_NEWER
 			window.titleContent = new GUIContent( "File Activity", inspectedFile.isFolder ? AssetDatabase.GetCachedIcon( "Assets" ) as Texture2D : UnityEditorInternal.InternalEditorUtility.GetIconForFile( inspectedFile.name ) );
-#else
-			window.titleContent = new GUIContent( "File Activity" );
-#endif
 			window.minSize = new Vector2( 400f, 175f );
-
 			window.fileBrowser = fileBrowser;
 			window.inspectedFile = inspectedFile;
-
 			window.Show();
+
 			EditorApplication.delayCall += () => window.LoadMoreFileActivityAsync();
 
 			return window;

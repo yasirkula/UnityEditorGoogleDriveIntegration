@@ -30,11 +30,7 @@ namespace DriveBrowser
 
 					if( m_isBusy )
 					{
-#if UNITY_2019_1_OR_NEWER
 						ShowNotification( new GUIContent( "Loading..." ), 10000.0 );
-#else
-						ShowNotification( new GUIContent( "Loading..." ) );
-#endif
 						HelperFunctions.LockAssemblyReload();
 					}
 					else

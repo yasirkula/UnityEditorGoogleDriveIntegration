@@ -50,17 +50,12 @@ namespace DriveBrowser
 		public static GlobalSearchWindow Initialize( FileBrowser fileBrowser, string searchTerm )
 		{
 			GlobalSearchWindow window = CreateInstance<GlobalSearchWindow>();
-#if UNITY_2019_3_OR_NEWER
 			window.titleContent = new GUIContent( "Search", EditorGUIUtility.IconContent( "Search Icon" ).image );
-#else
-			window.titleContent = new GUIContent( "Search" );
-#endif
 			window.minSize = new Vector2( 400f, 175f );
-
 			window.fileBrowser = fileBrowser;
 			window.searchTerm = searchTerm;
-
 			window.Show();
+
 			EditorApplication.delayCall += () => window.LoadMoreSearchResultsAsync();
 
 			return window;
