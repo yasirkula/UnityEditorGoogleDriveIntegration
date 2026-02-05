@@ -10,6 +10,9 @@ namespace DriveBrowser
         [Delayed]
         public string ClientID, ClientSecret;
 
+        [Tooltip("If enabled, files and folders that are shared with you by an organization or workspace will also be shown. If Drive Browser window is open while toggling this option, you need to right click its tab and select \"Refresh Root\" for the change to take effect.")]
+        public bool ShowSharedDriveFiles = true;
+
         /// <see cref="ScriptableSingleton{T}"/>'s default is <see cref="HideFlags.HideAndDontSave"/> which isn't editable in Inspector so we change it manually.
         protected void OnEnable() => hideFlags = HideFlags.DontSave;
 

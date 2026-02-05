@@ -101,6 +101,13 @@ namespace DriveBrowser
 					else
 						request.Q = "'" + folder.id + "' in parents and trashed = false";
 
+                    if (Settings.instance.ShowSharedDriveFiles)
+                    {
+                        request.IncludeItemsFromAllDrives = true;
+                        request.SupportsAllDrives = true;
+                        request.Corpora = "allDrives";
+                    }
+
 					FileList result = await request.ExecuteAsync();
 					if( result.Files != null )
 					{
@@ -279,6 +286,13 @@ namespace DriveBrowser
 					request.Fields = "nextPageToken, files(id, name)";
 					request.Q = "trashed = false and mimeType != 'application/vnd.google-apps.shortcut'";
 					request.PageToken = pageToken;
+
+                    if (Settings.instance.ShowSharedDriveFiles)
+                    {
+                        request.IncludeItemsFromAllDrives = true;
+                        request.SupportsAllDrives = true;
+                        request.Corpora = "allDrives";
+                    }
 
 					FileList result = await request.ExecuteAsync( cancellationToken );
 					if( result.Files != null )
@@ -479,6 +493,7 @@ namespace DriveBrowser
 				{
 					FilesResource.GetRequest request = driveAPI.Files.Get( file.id );
 					request.Fields = "copyRequiresWriterPermission, exportLinks";
+                    request.SupportsAllDrives = Settings.instance.ShowSharedDriveFiles ? true : null;
 
 					DFile _file = await request.ExecuteAsync( cancellationToken );
 					if( _file.CopyRequiresWriterPermission.Value )
@@ -546,6 +561,7 @@ namespace DriveBrowser
 							using( FileStream fileStream = File.Create( downloadPath ) )
 							{
 								FilesResource.GetRequest downloadRequest = driveAPI.Files.Get( file.id );
+                                downloadRequest.SupportsAllDrives = Settings.instance.ShowSharedDriveFiles ? true : null;
 								downloadRequest.MediaDownloader.ProgressChanged += ( progress ) => downloadProgressViewer.SetProgress( file, progress.BytesDownloaded );
 								downloadRequest.MediaDownloader.ChunkSize = DOWNLOAD_PROGRESS_REPORT_INTERVAL;
 								Google.Apis.Download.IDownloadProgress downloadResult = await downloadRequest.DownloadAsync( fileStream, cancellationToken );
@@ -688,6 +704,7 @@ namespace DriveBrowser
 
 				FilesResource.GetRequest request = ( await GetDriveAPIAsync() ).Files.Get( file.id );
 				request.Fields = "thumbnailLink";
+                request.SupportsAllDrives = Settings.instance.ShowSharedDriveFiles ? true : null;
 
 				DFile _file = await request.ExecuteAsync( cancellationToken );
 				string thumbnailLink = _file.ThumbnailLink;
@@ -733,6 +750,7 @@ namespace DriveBrowser
 		{
 			FilesResource.GetRequest request = ( await GetDriveAPIAsync() ).Files.Get( file.id );
 			request.Fields = "md5Checksum";
+            request.SupportsAllDrives = Settings.instance.ShowSharedDriveFiles ? true : null;
 
 			return ( await request.ExecuteAsync() ).Md5Checksum;
 		}
@@ -741,6 +759,7 @@ namespace DriveBrowser
 		{
 			FilesResource.GetRequest request = ( await GetDriveAPIAsync() ).Files.Get( file.id );
 			request.Fields = "webViewLink";
+            request.SupportsAllDrives = Settings.instance.ShowSharedDriveFiles ? true : null;
 
 			string url = ( await request.ExecuteAsync() ).WebViewLink;
 			Application.OpenURL( url );
@@ -758,6 +777,7 @@ namespace DriveBrowser
 			{
 				FilesResource.GetRequest request = ( await GetDriveAPIAsync() ).Files.Get( id );
 				request.Fields = REQUIRED_FILE_FIELDS;
+                request.SupportsAllDrives = Settings.instance.ShowSharedDriveFiles ? true : null;
 
 				try
 				{
