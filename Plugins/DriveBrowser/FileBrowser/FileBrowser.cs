@@ -47,9 +47,9 @@ namespace DriveBrowser
 		[MenuItem( "Window/Drive Browser" )]
 		public static void Initialize()
 		{
-			// Don't show this window until Google Cloud credentials are entered
-			if( string.IsNullOrEmpty( GoogleCloudCredentials.Instance.ClientID ) || string.IsNullOrEmpty( GoogleCloudCredentials.Instance.ClientSecret ) )
-				Selection.activeObject = GoogleCloudCredentials.Instance;
+            // Don't show this window until Google Cloud credentials are entered
+            if (string.IsNullOrEmpty(Settings.instance.ClientID) || string.IsNullOrEmpty(Settings.instance.ClientSecret))
+                Selection.activeObject = Settings.instance;
 			else
 			{
 				FileBrowser window = GetWindow<FileBrowser>();
@@ -128,6 +128,8 @@ namespace DriveBrowser
 					"- Asynchronous operations usually prevent code compilation until the operation is completed but if you feel like your code won't compile or " +
 					"Unity won't enter Play mode although all asynchronous operations are completed, click the 'Unstuck Compilation Pipeline' button", "OK" );
 			} );
+
+            menu.AddItem(new("Settings"), false, () => Selection.activeObject = Settings.instance);
 
 			menu.AddSeparator( "" );
 

@@ -862,11 +862,11 @@ namespace DriveBrowser
 
 		private static async Task InitializeAPIs()
 		{
-			ClientSecrets secrets = new ClientSecrets()
-			{
-				ClientId = GoogleCloudCredentials.Instance.ClientID,
-				ClientSecret = GoogleCloudCredentials.Instance.ClientSecret
-			};
+            ClientSecrets secrets = new()
+            {
+                ClientId = Settings.instance.ClientID,
+                ClientSecret = Settings.instance.ClientSecret
+            };
 
 			string[] scopes = new string[] { DriveService.Scope.DriveReadonly, DriveActivityService.Scope.DriveActivityReadonly, PeopleServiceService.Scope.UserinfoProfile, PeopleServiceService.Scope.ContactsReadonly };
 			UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync( secrets, scopes, "user", CancellationToken.None, new FileDataStore( AUTH_TOKEN_PATH, true ) );
