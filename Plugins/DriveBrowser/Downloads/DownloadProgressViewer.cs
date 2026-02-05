@@ -33,7 +33,6 @@ namespace DriveBrowser
 			window.totalFileCount = totalFileCount;
 
 			window.ShowUtility();
-			window.Repaint();
 
 			return window;
 		}

@@ -30,7 +30,10 @@ namespace DriveBrowser
 		private const float WINDOW_REPOSITION_PADDING_TOP = 30f;
 
 		private static bool assemblyLockedHintShown;
-		private static MethodInfo screenFittedRectGetter;
+
+        private static MethodInfo screenFittedRectGetter;
+        private static FieldInfo editorWindowHostViewGetter;
+        private static PropertyInfo hostViewContainerWindowGetter;
 
 		public static void InitiateDragDropDownload( string[] fileIDs )
 		{
@@ -57,16 +60,32 @@ namespace DriveBrowser
 			windowRect.height = preferredHeight + WINDOW_REPOSITION_PADDING_TOP;
 			windowRect.position = GUIUtility.GUIToScreenPoint( Event.current.mousePosition ) - new Vector2( windowRect.width * 0.5f, windowRect.height * 1.15f );
 
-			// If we don't call FitRectToScreen, EditorWindow can actually spawn outside of the screen
-			if( screenFittedRectGetter == null )
-				screenFittedRectGetter = typeof( EditorWindow ).Assembly.GetType( "UnityEditor.ContainerWindow" ).GetMethod( "FitRectToScreen", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static );
-
-			windowRect = (Rect) screenFittedRectGetter.Invoke( null, new object[3] { windowRect, true, true } );
+            windowRect = GetScreenFittedRect(windowRect, window);
 			windowRect.height = preferredHeight;
 			windowRect.y += WINDOW_REPOSITION_PADDING_TOP;
 
 			window.position = windowRect;
 		}
+
+        /// <summary>
+        /// Restricts the given Rect within the screen's bounds.
+        /// </summary>
+        private static Rect GetScreenFittedRect(Rect originalRect, EditorWindow editorWindow)
+        {
+            screenFittedRectGetter ??= typeof(EditorWindow).Assembly.GetType("UnityEditor.ContainerWindow").GetMethod("FitRectToScreen", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+
+            if (screenFittedRectGetter.GetParameters().Length == 3)
+                return (Rect)screenFittedRectGetter.Invoke(null, new object[] { originalRect, true, true });
+            else
+            {
+                // New version introduced in Unity 2022.3.62f1, Unity 6.0.49f1 and Unity 6.1.0f1.
+                // Usage example: https://github.com/Unity-Technologies/UnityCsReference/blob/10f8718268a7e34844ba7d59792117c28d75a99b/Editor/Mono/EditorWindow.cs#L1264
+                editorWindowHostViewGetter ??= typeof(EditorWindow).GetField("m_Parent", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                hostViewContainerWindowGetter ??= typeof(EditorWindow).Assembly.GetType("UnityEditor.HostView").GetProperty("window", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+                return (Rect)screenFittedRectGetter.Invoke(null, new object[] { originalRect, originalRect.center, true, hostViewContainerWindowGetter.GetValue(editorWindowHostViewGetter.GetValue(editorWindow), null) });
+            }
+        }
 
 		public static string[] GetFileIDs( this DriveFile[] files )
 		{
